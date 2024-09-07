@@ -1,51 +1,68 @@
+import inspect
+import numpy as np
+
 class MarkovDecisionProcess:
-    
     # Constructor
-    def __init__(self, name, state, action, transition_func):
-        self._name = name
-        self._state = _State(state)
-        self._action = _Action(action)
-        self._transition = _Transition(transition_func)
+    def __init__(self, state, action, transition_func, reward_func, T):
+        self._state = state
+        self._action = None
         self._reward = None
+        self._next_state = None
+        self._t = 0
+
+        self._state_trajectory = np.empty([len(state), T])
+        self._action_trajectory = np.empty([len(action), T])
+        self._reward_trajectory = np.empty([T])
+
+        self._transition_func = transition_func
+        self._reward_func = reward_func
+        self._T = T
 
     # Getters
-    def get_name(self):
-        return self._name
-    
     def get_state(self):
         return self._state
     
     def get_action(self):
         return self._action
-    
-    def get_transition(self):
-        return self._transition
 
     def get_reward(self):
         return self._reward
+
+    def get_next_state(self):
+        return self._next_state
+    
+    def get_t(self):
+        return self._t
+    
+    def get_T(self):
+        return self._T
     
     # Setters
     def set_action(self, action):
         self._action = action
 
-    def go_to_next_period(self):
-        temp = self._transition._transition_func(self._state, self._action)
-        self._reward = temp[1]
-        self._state = temp[0]
+    def set_next_state(self):
+        self._next_state = self._transition_func(self._state, self._action)
 
-class _State:
-    def __init__(self, *state):
-        self._state_vector = state
+    def set_reward(self):
+        self._reward = self._reward_func(self._state, self._action)
 
-class _Action:
-    def __init__(self, *action):
-        self._action_vector = action
+    def take_step(self):
+        self._state = self._next_state
+        self._t += 1
 
-class _Transition:
-    def __init__(self, transition_func):
-        self._transition_func = transition_func
+    def save_step(self):
+        self._state_trajectory[:,self._t] = self._state
+        self._action_trajectory[:,self._t] = self._action
+        self._reward_trajectory[self._t] = self._reward
 
-class _Policy:
-    def __init__(self, policy_func):
-        self._policy_func = policy_func
+    # Overwritting
+    def __str__(self):
+        return (f'Current state: {self._state} \n' +
+                f'Current action: {self._action} \n' +
+                f'Current reward: {self._reward} \n' +
+                f'Transition function: {self._transition_func.__name__}' +
+                    f'{inspect.signature(self._transition_func)} \n'
+                f'Reward function: {self._reward_func.__name__}' +
+                    f'{inspect.signature(self._reward_func)}')
 
