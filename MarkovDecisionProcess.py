@@ -3,17 +3,18 @@ import numpy as np
 
 class MarkovDecisionProcess:
     # Constructor
-    def __init__(self, state, action, transition_func, reward_func, T):
+    def __init__(self, state, action, action_bounds_func, transition_func, reward_func, T):
         self._state = state
-        self._action = None
-        self._reward = None
+        self._action = action
         self._next_state = None
+        self._reward = None
         self._t = 0
 
-        self._state_trajectory = np.empty([len(state), T])
-        self._action_trajectory = np.empty([len(action), T])
-        self._reward_trajectory = np.empty([T])
+        self._state_trajectory = np.empty([len(state), T + 1])
+        self._action_trajectory = np.empty([len(action), T + 1])
+        self._reward_trajectory = np.empty([T + 1])
 
+        self._action_bounds_func = action_bounds_func
         self._transition_func = transition_func
         self._reward_func = reward_func
         self._T = T
@@ -38,14 +39,10 @@ class MarkovDecisionProcess:
         return self._T
     
     # Setters
-    def set_action(self, action):
+    def take_action(self, action):
         self._action = action
-
-    def set_next_state(self):
-        self._next_state = self._transition_func(self._state, self._action)
-
-    def set_reward(self):
         self._reward = self._reward_func(self._state, self._action)
+        self._next_state = self._transition_func(self._state, self._action)
 
     def take_step(self):
         self._state = self._next_state

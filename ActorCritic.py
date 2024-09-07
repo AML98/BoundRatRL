@@ -29,16 +29,18 @@ class ActorCritic:
         self._alpha_value = alpha_value
         self._alpha_policy = alpha_policy
 
-        self._optimizer_value = optim.Adam(value_network, lr = self._alpha_value)
-        self._optimizer_policy = optim.Adam(policy_network, lr = self._alpha_policy)
+        self._optimizer_value = optim.Adam(value_network.parameters(), 
+                                           lr = self._alpha_value)
+        self._optimizer_policy = optim.Adam(policy_network.parameters(), 
+                                            lr = self._alpha_policy)
 
     def update_td_error(self):
-        state = self._mdp.get_state()
         reward = self._mdp.get_reward()
-        next_state = self._mdp.get_next_state()
+        state = torch.tensor(self._mdp.get_state(), dtype=torch.float32)
+        next_state = torch.tensor(self._mdp.get_next_state(), dtype=torch.float32)
+        
         state_value = self._value_network(state).item()
         next_state_value = self._value_network(next_state).item()
-
         self._td_error = reward - self._accum_error + state_value - next_state_value
         
     def update_accum_error(self):
